@@ -1,30 +1,72 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
 import Backendless from 'backendless';
 
+export const loginUser = async (username, password) => {
+    try {
+        return await Backendless.UserService.login(username, password, true);
+    } catch (error) {
+        console.error('Login failed:', error);
+        throw error;
+    }
+};
+
 const Login = () => {
-    const [login, setName] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [errors, setErrors] = useState({});
+    const [generalError, setGeneralError] = useState('');
+    const navigate = useNavigate();
 
-    const loginUser = async (login, password) => {
+    /*const isValidSession = async () => {
         try {
-            return await Backendless.UserService.login(login, password, true);
+            return await Backendless.UserService.isValidLogin();
         } catch (error) {
+            console.error('Failed to validate login session:', error);
             throw error;
         }
+    };
+
+    useEffect(() => {
+        const checkValidSession = async () => {
+            try {
+                const isValid = await isValidSession();
+                if (isValid) {
+                    navigate('/login');
+                }
+            } catch (error) {
+                setGeneralError(error.message || 'Failed to validate login session.');
+            }
+        };
+        checkValidSession().then(r => r);
+    }, [navigate]);*/
+
+    const validateInputs = () => {
+        const newErrors = {};
+        if (!username) newErrors.username = 'Username is required.';
+        if (!password) newErrors.password = 'Password is required.';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError('');
+        setErrors({});
+        setGeneralError('');
+
+        if (!validateInputs()) {
+            setLoading(false);
+            return;
+        }
 
         try {
-            await loginUser(login, password);
+            await loginUser(username, password);
             console.log('User logged in successfully!');
+            navigate('/profile');
         } catch (error) {
-            setError(error.message || 'Login failed. Please try again.');
+            setGeneralError(error.message || 'Login failed. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -40,19 +82,21 @@ const Login = () => {
                                 <div className="row justify-content-center">
                                     <div className="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
                                         <p className="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Login</p>
-                                        <form className="mx-1 mx-md-4" onSubmit={handleSubmit}>
+                                        <form className="mx-1 mx-md-4 needs-validation" onSubmit={handleSubmit}
+                                              noValidate>
                                             <div className="d-flex flex-row align-items-center mb-4">
                                                 <i className="fas fa-user fa-lg me-3 fa-fw"></i>
                                                 <div data-mdb-input-init="" className="form-outline flex-fill mb-0">
                                                     <input
-                                                        type="login"
+                                                        type="text"
                                                         id="form3Example3c"
-                                                        className="form-control"
-                                                        placeholder={'Login'}
-                                                        value={login}
-                                                        onChange={(e) => setName(e.target.value)}
+                                                        className={`form-control ${errors.username ? 'is-invalid' : ''}`}
+                                                        placeholder='Username'
+                                                        value={username}
+                                                        onChange={(e) => setUsername(e.target.value)}
                                                         required
                                                     />
+                                                    <div className="invalid-feedback">{errors.username}</div>
                                                 </div>
                                             </div>
 
@@ -62,17 +106,18 @@ const Login = () => {
                                                     <input
                                                         type="password"
                                                         id="form3Example4c"
-                                                        className="form-control"
-                                                        placeholder={'Password'}
+                                                        className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                                                        placeholder='Password'
                                                         value={password}
                                                         onChange={(e) => setPassword(e.target.value)}
                                                         required
                                                     />
+                                                    <div className="invalid-feedback">{errors.password}</div>
                                                 </div>
                                             </div>
 
-                                            <div className={error ? 'text-danger text-center mb-3' : 'd-none'}>
-                                                {error}
+                                            <div className={generalError ? 'text-danger text-center mb-3' : 'd-none'}>
+                                                {generalError}
                                             </div>
 
                                             <div className="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
@@ -87,14 +132,15 @@ const Login = () => {
                                             </div>
                                         </form>
                                         <div className="text-center">
-                                            <p>Not a member? <a href="/register">Register</a></p>
+                                            <p>Not a member? <Link to="/register">Register</Link></p>
+                                            <p><Link to="/reset-password">Forgot password?</Link></p>
                                         </div>
                                     </div>
                                     <div
                                         className="col-md-10 col-lg-6 col-lg-6 d-flex align-items-center order-1 order-lg-2">
                                         <img
                                             src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-registration/draw1.webp"
-                                            className="img-fluid" alt="Sample image"/>
+                                            className="img-fluid" alt="Sample"/>
                                     </div>
                                 </div>
                             </div>
