@@ -17,8 +17,10 @@ const Registration = () => {
         const newErrors = {};
         const ageRegex = /^(?:[6-9]|[1-9][0-9]+)$/;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const usernameRegex = /^[a-zA-Z0-9_]+$/;
 
         if (!username) newErrors.username = 'Username is required.';
+        else if (!usernameRegex.test(username)) newErrors.username = 'Username can only contain letters, numbers, and underscores.';
         if (!email) newErrors.email = 'Email is required';
         else if (!emailRegex.test(email)) newErrors.email = 'Invalid email format';
         if (!password) newErrors.password = 'Password is required.';

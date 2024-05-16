@@ -23,25 +23,20 @@ const Home = () => {
                                                 <li className="list-group-item"><Link
                                                     to={'/register'}>Registration</Link></li>
                                                 <li className="list-group-item"><Link to={'/login'}>Login</Link></li>
-                                                <li className="list-group-item"><Link to={'/recover'}>Password
+                                                <li className="list-group-item"><Link to={'/profile'}>User
+                                                    Profile</Link></li>
+                                                <li className="list-group-item"><Link to={'/reset-password'}>Password
                                                     Recovery</Link></li>
-
-                                                <li className="list-group-item">User Management: Create, Update,
-                                                    Delete
-                                                </li>
-                                                <li className="list-group-item">File Management: Upload, Download,
-                                                    Delete
-                                                </li>
-                                                <li className="list-group-item">Shared Access to Files</li>
+                                                <li className="list-group-item"><Link to={'/file-manager'}>File
+                                                    Management</Link></li>
                                             </ul>
                                         </div>
                                     </div>
                                     <div
-                                        className="col-md-10 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-2">
+                                        className="col-md-10 col-lg-6 col-xl-6 d-flex align-items-center order-1 order-lg-2">
                                         <img
-                                            // src="https://blush.design/api/download?shareUri=NyawDjLfFmHXfUDZ&c=Skin_0%7E09b9c6-0.1%7Eca8f67&w=800&h=800&fm=png"
                                             src="https://blush.design/api/download?shareUri=UZNhaukYbPPt58iH&c=Skin_0%7Eca8f67-0.1%7Eff8282-0.2%7Eca8f67&w=800&h=800&fm=png"
-                                            className="img-fluid" alt="Registration" style={{maxWidth: '100%'}}/>
+                                            className="img-fluid" alt="Registration"></img>
                                     </div>
                                 </div>
                             </div>

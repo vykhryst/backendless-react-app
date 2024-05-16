@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import Backendless from 'backendless';
 
@@ -18,29 +18,6 @@ const Login = () => {
     const [errors, setErrors] = useState({});
     const [generalError, setGeneralError] = useState('');
     const navigate = useNavigate();
-
-    /*const isValidSession = async () => {
-        try {
-            return await Backendless.UserService.isValidLogin();
-        } catch (error) {
-            console.error('Failed to validate login session:', error);
-            throw error;
-        }
-    };
-
-    useEffect(() => {
-        const checkValidSession = async () => {
-            try {
-                const isValid = await isValidSession();
-                if (isValid) {
-                    navigate('/login');
-                }
-            } catch (error) {
-                setGeneralError(error.message || 'Failed to validate login session.');
-            }
-        };
-        checkValidSession().then(r => r);
-    }, [navigate]);*/
 
     const validateInputs = () => {
         const newErrors = {};
