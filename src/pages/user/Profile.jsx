@@ -4,22 +4,79 @@ import {Link, useNavigate} from "react-router-dom";
 
 const Profile = () => {
     const [user, setUser] = useState(null);
+    const [formData, setFormData] = useState({username: '', age: '', country: '', email: '', gender: ''});
+    const [isEditing, setIsEditing] = useState(false);
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
 
     useEffect(() => {
         Backendless.UserService.getCurrentUser()
             .then(currentUser => {
                 setUser(currentUser);
+                setFormData({
+                    username: currentUser.username || '',
+                    age: currentUser.age ? currentUser.age.toString() : '',
+                    country: currentUser.country || '',
+                    email: currentUser.email || '',
+                    gender: currentUser.gender || '',
+                });
             })
             .catch(error => {
                 console.error('Error getting current user:', error);
             });
     }, []);
 
+    const handleInputChange = (event) => {
+        const {name, value} = event.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+    };
+
+    const validateInputs = () => {
+        const newErrors = {};
+        const ageRegex = /^(?:[6-9]|[1-9][0-9]+)$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const usernameRegex = /^[a-zA-Z0-9_]+$/;
+
+        if (!formData.username.trim()) newErrors.username = 'Username is required.';
+        else if (!usernameRegex.test(formData.username.trim())) newErrors.username = 'Username can only contain letters, numbers, and underscores.';
+        if (!formData.email.trim()) newErrors.email = 'Email is required';
+        else if (!emailRegex.test(formData.email.trim())) newErrors.email = 'Invalid email format';
+        if (!formData.age.trim()) newErrors.age = 'Age is required.';
+        else if (!ageRegex.test(formData.age.trim())) newErrors.age = 'Age must be a number greater than 5.';
+        if (!formData.country.trim()) newErrors.country = 'Country is required.';
+        if (!formData.gender.trim()) newErrors.gender = 'Gender is required.';
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSaveChanges = async () => {
+        if (!validateInputs()) return;
+
+        if (user) {
+            user.username = formData.username.trim();
+            user.age = parseInt(formData.age.trim(), 10); // Ensure age is an integer
+            user.country = formData.country.trim();
+            user.email = formData.email.trim();
+            user.gender = formData.gender.trim();
+            try {
+                const updatedUser = await Backendless.UserService.update(user);
+                setUser(updatedUser);
+                setIsEditing(false);
+                setErrors({});
+            } catch (error) {
+                console.error('Error updating user:', error);
+            }
+        }
+    };
+
     const logoutUser = () => {
         Backendless.UserService.logout()
             .then(() => {
-                console.log("user has been logged out");
+                console.log("User has been logged out");
                 navigate('/login');
             })
             .catch(error => {
@@ -36,37 +93,91 @@ const Profile = () => {
                             <div className="card-body p-md-5">
                                 <div className="row justify-content-center">
                                     <div className="col-md-10 col-lg-9 col-xl-6 order-2 order-lg-1">
-                                        <p className="text-center h1 fw-bold mb-5 mx-1 mx-md-4 ">User Profile</p>
-                                        <div className="text-center mb-4">
-                                            <img
-                                                src="https://blush.design/api/download?shareUri=cSe9iIMVktXRz7Ms&w=800&h=800&fm=png"
-                                                className="img-fluid rounded-circle" style={{width: '120px'}}
-                                                alt={'Avatar'}/>
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="h5 mb-1">{user ? user.username : 'Loading...'}</p>
-                                            <p className="text-muted">{user ? user.email : 'Loading...'}</p>
-                                        </div>
-                                        <div className="mt-4">
-                                            <p><strong>Age:</strong> {user ? user.age : 'Loading...'}</p>
-                                            <p><strong>Country:</strong> {user ? user.country : 'Loading...'}</p>
-                                            <p><strong>Gender:</strong> {user ? user.gender : 'Loading...'}</p>
-                                        </div>
+                                        <p className="text-center h1 fw-bold mb-4 mx-1 mx-md-4">User Profile</p>
+                                        {isEditing ? (
+                                            <div className="mt-3">
+                                                <div className="mb-2">
+                                                    <label className="form-label" htmlFor="username">Username:</label>
+                                                    <input type="text" className="form-control" id="username"
+                                                           name="username"
+                                                           value={formData.username} onChange={handleInputChange}/>
+                                                    {errors.username &&
+                                                        <div className="text-danger">{errors.username}</div>}
+                                                </div>
+                                                <div className="mb-2">
+                                                    <label className="form-label" htmlFor="email">Email:</label>
+                                                    <input type="email" className="form-control" id="email" name="email"
+                                                           value={formData.email} onChange={handleInputChange}/>
+                                                    {errors.email && <div className="text-danger">{errors.email}</div>}
+                                                </div>
+                                                <div className="mb-2">
+                                                    <label className="form-label" htmlFor="age">Age:</label>
+                                                    <input type="number" className="form-control" id="age" name="age"
+                                                           value={formData.age} onChange={handleInputChange}/>
+                                                    {errors.age && <div className="text-danger">{errors.age}</div>}
+                                                </div>
+                                                <div className="mb-2">
+                                                    <label className="form-label" htmlFor="country">Country:</label>
+                                                    <input type="text" className="form-control" id="country"
+                                                           name="country"
+                                                           value={formData.country} onChange={handleInputChange}/>
+                                                    {errors.country &&
+                                                        <div className="text-danger">{errors.country}</div>}
+                                                </div>
 
+                                                <div className="mb-2">
+                                                    <label className="form-label" htmlFor="gender">Gender:</label>
+                                                    <select className="form-select" id="gender" name="gender"
+                                                            value={formData.gender} onChange={handleInputChange}>
+                                                        <option value="">Select Gender</option>
+                                                        <option value="male">Male</option>
+                                                        <option value="female">Female</option>
+                                                        <option value="other">Other</option>
+                                                    </select>
+                                                    {errors.gender &&
+                                                        <div className="text-danger">{errors.gender}</div>}
+                                                </div>
+
+                                                <button onClick={handleSaveChanges}
+                                                        className="btn btn-success mt-1">Save Changes
+                                                </button>
+                                                <button onClick={function () {
+                                                    setIsEditing(false);
+                                                    setErrors({});
+                                                }}
+                                                        className="btn btn-secondary ms-2 mt-1">Cancel
+                                                </button>
+                                            </div>
+
+                                        ) : (
+                                            <div className="mt-2">
+                                                <div className="text-center mb-2">
+                                                    <img
+                                                        src="https://blush.design/api/download?shareUri=cSe9iIMVktXRz7Ms&w=800&h=800&fm=png"
+                                                        className="img-fluid rounded-circle" style={{width: '120px'}}
+                                                        alt={'Avatar'}/>
+                                                </div>
+                                                <p className="text-center h5 mt-1">{user ? user.username : 'Loading...'}</p>
+                                                <p><strong>Username:</strong> {user ? user.username : 'Loading...'}</p>
+                                                <p><strong>Email:</strong> {user ? user.email : 'Loading...'}</p>
+                                                <p><strong>Age:</strong> {user ? user.age : 'Loading...'}</p>
+                                                <p><strong>Country:</strong> {user ? user.country : 'Loading...'}</p>
+                                                <p><strong>Gender:</strong> {user ? user.gender : 'Loading...'}</p>
+                                                <button onClick={() => setIsEditing(true)} className="btn btn-light">
+                                                    <i className="fa-solid fa-pen me-2"></i>Edit Profile
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="row justify-content-center mt-4 order-1 order-lg-2">
                                         <div className="col-md-10 col-lg-9 col-xl-12 text-center">
-                                            <Link to="/file-manager"
-                                                  className="btn btn-primary me-md-2 mb-2 mb-md-0">
-                                                File Management
-                                            </Link>
+                                            <Link to="/file-manager" className="btn btn-primary me-md-2 mb-2 mb-md-0">File
+                                                Management</Link>
                                             <Link to="/reset-password"
-                                                  className="btn btn-secondary me-md-2 mb-2 mb-md-0">
-                                                Reset Password
-                                            </Link>
+                                                  className="btn btn-secondary me-md-2 mb-2 mb-md-0">Reset
+                                                Password</Link>
                                             <button onClick={logoutUser}
-                                                    className="btn btn-danger me-md-2 mb-2 mb-md-0">
-                                                Logout
+                                                    className="btn btn-danger me-md-2 mb-2 mb-md-0">Logout
                                             </button>
                                         </div>
                                     </div>
