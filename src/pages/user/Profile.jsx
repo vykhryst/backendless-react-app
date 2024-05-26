@@ -9,6 +9,7 @@ const Profile = () => {
     const [errors, setErrors] = useState({});
     const [fileList, setFileList] = useState([]);
     const [selectedAvatar, setSelectedAvatar] = useState(null);
+    const [trackLocation, setTrackLocation] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -16,6 +17,7 @@ const Profile = () => {
             try {
                 const currentUser = await Backendless.UserService.getCurrentUser();
                 setUser(currentUser);
+                setTrackLocation(!!currentUser.myLocation)
                 setFormData({
                     age: currentUser.age ? currentUser.age.toString() : '',
                     country: currentUser.country || '',
@@ -30,6 +32,50 @@ const Profile = () => {
 
         getCurrentUser().then(r => r);
     }, []);
+
+    useEffect(() => {
+        let locationInterval;
+        if (trackLocation) {
+            updateLocation().then(r => r);
+            locationInterval = setInterval(() => {
+                updateLocation().then(r => r);
+            }, 60000); // Оновлення кожну хвилину
+        }
+        return () => {
+            if (locationInterval) clearInterval(locationInterval);
+        };
+    }, [trackLocation]);
+
+    const updateLocation = async () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const {latitude, longitude} = position.coords;
+                const updatedUser = {
+                    ...user,
+                    myLocation: new Backendless.Data.Point().setLatitude(latitude).setLongitude(longitude)
+                };
+                await Backendless.UserService.update(updatedUser);
+            }, (error) => {
+                console.error('Failed to get geolocation:', error);
+            });
+        } else {
+            console.error('Geolocation is not supported by this browser.');
+        }
+    };
+
+    const handleTrackLocationChange = async () => {
+        const newTrackLocation = !trackLocation;
+        setTrackLocation(newTrackLocation);
+        if (newTrackLocation) {
+            await updateLocation();
+        } else {
+            // Якщо вимкнено відстеження місцезнаходження, очищаємо поле myLocation
+            const updatedUser = {...user, myLocation: null};
+            await Backendless.UserService.update(updatedUser);
+            setUser(updatedUser);
+        }
+    };
+
 
     const fetchUserFiles = async (username) => {
         try {
@@ -73,7 +119,7 @@ const Profile = () => {
             user.email = formData.email.trim();
             user.gender = formData.gender.trim();
             if (selectedAvatar) {
-                user.avatar_path = selectedAvatar.publicUrl;
+                user.avatarUrl = selectedAvatar.publicUrl;
             }
             try {
                 const updatedUser = await Backendless.UserService.update(user);
@@ -115,7 +161,7 @@ const Profile = () => {
                                             <img
                                                 className="img-fluid rounded-circle" style={{width: '120px'}}
                                                 alt={'Avatar'}
-                                                src={selectedAvatar?.publicUrl || user?.avatar_path || 'default_avatar_url_here'}/>
+                                                src={selectedAvatar?.publicUrl || user?.avatarUrl || 'default_avatar_url_here'}/>
                                         </div>
                                         {isEditing ? (
                                             <div className="mt-3">
@@ -127,12 +173,13 @@ const Profile = () => {
                                                         className="form-select"
                                                         id="avatar"
                                                         name="avatar"
-                                                        onChange={(e) => handleAvatarSelection(e.target.value)}>
+                                                        onChange={(e) => handleAvatarSelection(e.target.value)}
+                                                    >
                                                         <option key="default" value="">
                                                             Select Avatar
                                                         </option>
-                                                        {fileList.map((file, index) => (
-                                                            <option key={index} value={file.url}>
+                                                        {fileList.map((file) => (
+                                                            <option key={file.url} value={file.url}>
                                                                 {file.name}
                                                             </option>
                                                         ))}
@@ -237,8 +284,20 @@ const Profile = () => {
                                                     <p>
                                                         <strong>Gender:</strong> {user ? user.gender : 'Loading...'}
                                                     </p>
+                                                    <div className="form-check form-switch mt-2">
+                                                        <input
+                                                            className="form-check-input"
+                                                            type="checkbox"
+                                                            id="trackLocationSwitch"
+                                                            checked={trackLocation}
+                                                            onChange={handleTrackLocationChange}
+                                                        />
+                                                        <label className="form-check-label"
+                                                               htmlFor="trackLocationSwitch">Track my location</label>
+                                                    </div>
+
                                                     <button onClick={() => setIsEditing(true)}
-                                                            className="btn btn-light">
+                                                            className="btn btn-light mt-2">
                                                         <i className="fa-solid fa-pen me-2"></i>Edit Profile
                                                     </button>
                                                 </div>
