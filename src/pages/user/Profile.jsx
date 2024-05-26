@@ -1,36 +1,50 @@
 import React, {useEffect, useState} from 'react';
 import Backendless from 'backendless';
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useNavigate} from 'react-router-dom';
 
 const Profile = () => {
     const [user, setUser] = useState(null);
-    const [formData, setFormData] = useState({username: '', age: '', country: '', email: '', gender: ''});
+    const [formData, setFormData] = useState({age: '', country: '', email: '', gender: ''});
     const [isEditing, setIsEditing] = useState(false);
     const [errors, setErrors] = useState({});
+    const [fileList, setFileList] = useState([]);
+    const [selectedAvatar, setSelectedAvatar] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        Backendless.UserService.getCurrentUser()
-            .then(currentUser => {
+        const getCurrentUser = async () => {
+            try {
+                const currentUser = await Backendless.UserService.getCurrentUser();
                 setUser(currentUser);
                 setFormData({
-                    username: currentUser.username || '',
                     age: currentUser.age ? currentUser.age.toString() : '',
                     country: currentUser.country || '',
                     email: currentUser.email || '',
                     gender: currentUser.gender || '',
                 });
-            })
-            .catch(error => {
+                await fetchUserFiles(currentUser.username);
+            } catch (error) {
                 console.error('Error getting current user:', error);
-            });
+            }
+        };
+
+        getCurrentUser().then(r => r);
     }, []);
+
+    const fetchUserFiles = async (username) => {
+        try {
+            const files = await Backendless.Files.listing(`/users/${username}`, '*.{jpg,png,gif,jpeg,svg,JPG,PNG,GIF,JPEG,SVG}');
+            setFileList(files);
+        } catch (error) {
+            console.error('Error fetching user files:', error);
+        }
+    };
 
     const handleInputChange = (event) => {
         const {name, value} = event.target;
         setFormData({
             ...formData,
-            [name]: value
+            [name]: value,
         });
     };
 
@@ -38,10 +52,7 @@ const Profile = () => {
         const newErrors = {};
         const ageRegex = /^(?:[6-9]|[1-9][0-9]+)$/;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const usernameRegex = /^[a-zA-Z0-9_]+$/;
 
-        if (!formData.username.trim()) newErrors.username = 'Username is required.';
-        else if (!usernameRegex.test(formData.username.trim())) newErrors.username = 'Username can only contain letters, numbers, and underscores.';
         if (!formData.email.trim()) newErrors.email = 'Email is required';
         else if (!emailRegex.test(formData.email.trim())) newErrors.email = 'Invalid email format';
         if (!formData.age.trim()) newErrors.age = 'Age is required.';
@@ -57,11 +68,13 @@ const Profile = () => {
         if (!validateInputs()) return;
 
         if (user) {
-            user.username = formData.username.trim();
             user.age = parseInt(formData.age.trim(), 10); // Ensure age is an integer
             user.country = formData.country.trim();
             user.email = formData.email.trim();
             user.gender = formData.gender.trim();
+            if (selectedAvatar) {
+                user.avatar_path = selectedAvatar.publicUrl;
+            }
             try {
                 const updatedUser = await Backendless.UserService.update(user);
                 setUser(updatedUser);
@@ -73,15 +86,19 @@ const Profile = () => {
         }
     };
 
-    const logoutUser = () => {
-        Backendless.UserService.logout()
-            .then(() => {
-                console.log("User has been logged out");
-                navigate('/login');
-            })
-            .catch(error => {
-                console.log('Error logging out:', error);
-            });
+    const handleAvatarSelection = (fileURL) => {
+        const selectedFile = fileList.find((file) => file.url === fileURL);
+        setSelectedAvatar(selectedFile);
+    };
+
+    const logoutUser = async () => {
+        try {
+            await Backendless.UserService.logout();
+            console.log('User has been logged out');
+            navigate('/login');
+        } catch (error) {
+            console.log('Error logging out:', error);
+        }
     };
 
     return (
@@ -94,92 +111,158 @@ const Profile = () => {
                                 <div className="row justify-content-center">
                                     <div className="col-md-10 col-lg-9 col-xl-6 order-2 order-lg-1">
                                         <p className="text-center h1 fw-bold mb-4 mx-1 mx-md-4">User Profile</p>
+                                        <div className="text-center mb-2">
+                                            <img
+                                                className="img-fluid rounded-circle" style={{width: '120px'}}
+                                                alt={'Avatar'}
+                                                src={selectedAvatar?.publicUrl || user?.avatar_path || 'default_avatar_url_here'}/>
+                                        </div>
                                         {isEditing ? (
                                             <div className="mt-3">
                                                 <div className="mb-2">
-                                                    <label className="form-label" htmlFor="username">Username:</label>
-                                                    <input type="text" className="form-control" id="username"
-                                                           name="username"
-                                                           value={formData.username} onChange={handleInputChange}/>
-                                                    {errors.username &&
-                                                        <div className="text-danger">{errors.username}</div>}
+                                                    <label className="form-label" htmlFor="avatar">
+                                                        Avatar:
+                                                    </label>
+                                                    <select
+                                                        className="form-select"
+                                                        id="avatar"
+                                                        name="avatar"
+                                                        onChange={(e) => handleAvatarSelection(e.target.value)}>
+                                                        <option key="default" value="">
+                                                            Select Avatar
+                                                        </option>
+                                                        {fileList.map((file, index) => (
+                                                            <option key={index} value={file.url}>
+                                                                {file.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                 </div>
                                                 <div className="mb-2">
-                                                    <label className="form-label" htmlFor="email">Email:</label>
-                                                    <input type="email" className="form-control" id="email" name="email"
-                                                           value={formData.email} onChange={handleInputChange}/>
-                                                    {errors.email && <div className="text-danger">{errors.email}</div>}
+                                                    <label className="form-label" htmlFor="email">
+                                                        Email:
+                                                    </label>
+                                                    <input
+                                                        type="email"
+                                                        className="form-control"
+                                                        id="email"
+                                                        name="email"
+                                                        value={formData.email}
+                                                        onChange={handleInputChange}
+                                                    />
+                                                    {errors.email && (
+                                                        <div className="text-danger">{errors.email}</div>
+                                                    )}
                                                 </div>
                                                 <div className="mb-2">
-                                                    <label className="form-label" htmlFor="age">Age:</label>
-                                                    <input type="number" className="form-control" id="age" name="age"
-                                                           value={formData.age} onChange={handleInputChange}/>
+                                                    <label className="form-label" htmlFor="age">
+                                                        Age:
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        className="form-control"
+                                                        id="age"
+                                                        name="age"
+                                                        value={formData.age}
+                                                        onChange={handleInputChange}
+                                                    />
                                                     {errors.age && <div className="text-danger">{errors.age}</div>}
                                                 </div>
                                                 <div className="mb-2">
-                                                    <label className="form-label" htmlFor="country">Country:</label>
-                                                    <input type="text" className="form-control" id="country"
-                                                           name="country"
-                                                           value={formData.country} onChange={handleInputChange}/>
-                                                    {errors.country &&
-                                                        <div className="text-danger">{errors.country}</div>}
+                                                    <label className="form-label" htmlFor="country">
+                                                        Country:
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        id="country"
+                                                        name="country"
+                                                        value={formData.country}
+                                                        onChange={handleInputChange}
+                                                    />
+                                                    {errors.country && (
+                                                        <div className="text-danger">{errors.country}</div>
+                                                    )}
                                                 </div>
-
                                                 <div className="mb-2">
-                                                    <label className="form-label" htmlFor="gender">Gender:</label>
-                                                    <select className="form-select" id="gender" name="gender"
-                                                            value={formData.gender} onChange={handleInputChange}>
+                                                    <label className="form-label" htmlFor="gender">
+                                                        Gender:
+                                                    </label>
+                                                    <select
+                                                        className="form-select"
+                                                        id="gender"
+                                                        name="gender"
+                                                        value={formData.gender}
+                                                        onChange={handleInputChange}
+                                                    >
                                                         <option value="">Select Gender</option>
                                                         <option value="male">Male</option>
                                                         <option value="female">Female</option>
                                                         <option value="other">Other</option>
                                                     </select>
-                                                    {errors.gender &&
-                                                        <div className="text-danger">{errors.gender}</div>}
+                                                    {errors.gender && (
+                                                        <div className="text-danger">{errors.gender}</div>
+                                                    )}
                                                 </div>
-
-                                                <button onClick={handleSaveChanges}
-                                                        className="btn btn-success mt-1">Save Changes
+                                                <button
+                                                    onClick={handleSaveChanges}
+                                                    className="btn btn-success mt-1">
+                                                    Save Changes
                                                 </button>
-                                                <button onClick={function () {
-                                                    setIsEditing(false);
-                                                    setErrors({});
-                                                }}
-                                                        className="btn btn-secondary ms-2 mt-1">Cancel
+                                                <button
+                                                    onClick={() => {
+                                                        setIsEditing(false);
+                                                        setErrors({});
+                                                    }}
+                                                    className="btn btn-secondary ms-2 mt-1">
+                                                    Cancel
                                                 </button>
                                             </div>
-
                                         ) : (
-                                            <div className="mt-2">
-                                                <div className="text-center mb-2">
-                                                    <img
-                                                        src="https://blush.design/api/download?shareUri=cSe9iIMVktXRz7Ms&w=800&h=800&fm=png"
-                                                        className="img-fluid rounded-circle" style={{width: '120px'}}
-                                                        alt={'Avatar'}/>
+                                            <>
+                                                <div className="mt-2">
+                                                    <p className="text-center h5 mt-1">
+                                                        {user ? user.username : 'Loading...'}
+                                                    </p>
+                                                    <p>
+                                                        <strong>Email:</strong> {user ? user.email : 'Loading...'}
+                                                    </p>
+                                                    <p>
+                                                        <strong>Age:</strong> {user ? user.age : 'Loading...'}
+                                                    </p>
+                                                    <p>
+                                                        <strong>Country:</strong>{' '}
+                                                        {user ? user.country : 'Loading...'}
+                                                    </p>
+                                                    <p>
+                                                        <strong>Gender:</strong> {user ? user.gender : 'Loading...'}
+                                                    </p>
+                                                    <button onClick={() => setIsEditing(true)}
+                                                            className="btn btn-light">
+                                                        <i className="fa-solid fa-pen me-2"></i>Edit Profile
+                                                    </button>
                                                 </div>
-                                                <p className="text-center h5 mt-1">{user ? user.username : 'Loading...'}</p>
-                                                <p><strong>Username:</strong> {user ? user.username : 'Loading...'}</p>
-                                                <p><strong>Email:</strong> {user ? user.email : 'Loading...'}</p>
-                                                <p><strong>Age:</strong> {user ? user.age : 'Loading...'}</p>
-                                                <p><strong>Country:</strong> {user ? user.country : 'Loading...'}</p>
-                                                <p><strong>Gender:</strong> {user ? user.gender : 'Loading...'}</p>
-                                                <button onClick={() => setIsEditing(true)} className="btn btn-light">
-                                                    <i className="fa-solid fa-pen me-2"></i>Edit Profile
-                                                </button>
-                                            </div>
+                                                <div className="row justify-content-center mt-2 order-2 order-lg-2">
+                                                    <div className="col-md-10 col-lg-9 col-xl-12 text-center">
+                                                        <Link
+                                                            to="/file-manager"
+                                                            className="btn btn-primary me-md-2 mb-2 mb-md-0 mt-2">
+                                                            File Management
+                                                        </Link>
+                                                        <Link
+                                                            to="/reset-password"
+                                                            className="btn btn-secondary me-md-2 mb-2 mb-md-0 mt-2">
+                                                            Reset Password
+                                                        </Link>
+                                                        <button
+                                                            onClick={logoutUser}
+                                                            className="btn btn-danger me-md-2 mb-2 mb-md-0 mt-2">
+                                                            Logout
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </>
                                         )}
-                                    </div>
-                                    <div className="row justify-content-center mt-4 order-1 order-lg-2">
-                                        <div className="col-md-10 col-lg-9 col-xl-12 text-center">
-                                            <Link to="/file-manager" className="btn btn-primary me-md-2 mb-2 mb-md-0">File
-                                                Management</Link>
-                                            <Link to="/reset-password"
-                                                  className="btn btn-secondary me-md-2 mb-2 mb-md-0">Reset
-                                                Password</Link>
-                                            <button onClick={logoutUser}
-                                                    className="btn btn-danger me-md-2 mb-2 mb-md-0">Logout
-                                            </button>
-                                        </div>
                                     </div>
                                 </div>
                             </div>

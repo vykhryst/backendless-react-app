@@ -1,7 +1,22 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link} from "react-router-dom";
+import Backendless from "backendless";
 
 const Home = () => {
+    const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            try {
+                const user = await Backendless.UserService.getCurrentUser();
+                setCurrentUser(user);
+            } catch (error) {
+                console.error('Failed to fetch current user', error);
+            }
+        };
+        fetchCurrentUser().then(r => r);
+    }, []);
+
     return (
         <section className="vh-100" style={{backgroundColor: '#eee'}}>
             <div className="container h-100">
@@ -16,19 +31,21 @@ const Home = () => {
                                     <div className="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
 
                                         <div className="text-justify">
-                                            <p>This platform allows you to manage users and files through our
-                                                Backendless service.</p>
-                                            <p>Here are some key functionalities:</p>
+                                            <p>Functionality:</p>
                                             <ul className="list-group list-group-flush text-start">
                                                 <li className="list-group-item"><Link
                                                     to={'/register'}>Registration</Link></li>
                                                 <li className="list-group-item"><Link to={'/login'}>Login</Link></li>
-                                                <li className="list-group-item"><Link to={'/profile'}>User
-                                                    Profile</Link></li>
-                                                <li className="list-group-item"><Link to={'/reset-password'}>Password
-                                                    Recovery</Link></li>
-                                                <li className="list-group-item"><Link to={'/file-manager'}>File
-                                                    Management</Link></li>
+                                                {currentUser && (
+                                                    <>
+                                                        <li className="list-group-item"><Link to={'/profile'}>User
+                                                            Profile</Link></li>
+                                                        <li className="list-group-item"><Link to={'/reset-password'}>Password
+                                                            Recovery</Link></li>
+                                                        <li className="list-group-item"><Link to={'/file-manager'}>File
+                                                            Management</Link></li>
+                                                    </>
+                                                )}
                                             </ul>
                                         </div>
                                     </div>
