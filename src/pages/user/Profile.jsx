@@ -16,6 +16,7 @@ const Profile = () => {
         const getCurrentUser = async () => {
             try {
                 const currentUser = await Backendless.UserService.getCurrentUser();
+                // console.log('Current user ID:', currentUser.objectId);
                 setUser(currentUser);
                 setTrackLocation(!!currentUser.myLocation)
                 setFormData({
@@ -161,7 +162,8 @@ const Profile = () => {
                                             <img
                                                 className="img-fluid rounded-circle" style={{width: '120px'}}
                                                 alt={'Avatar'}
-                                                src={selectedAvatar?.publicUrl || user?.avatarUrl || 'default_avatar_url_here'}/>
+                                                src={selectedAvatar?.publicUrl || user?.avatarUrl || 'https://via.placeholder.com/150'}
+                                            />
                                         </div>
                                         {isEditing ? (
                                             <div className="mt-3">
