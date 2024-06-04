@@ -16,7 +16,6 @@ const Profile = () => {
         const getCurrentUser = async () => {
             try {
                 const currentUser = await Backendless.UserService.getCurrentUser();
-                // console.log('Current user ID:', currentUser.objectId);
                 setUser(currentUser);
                 setTrackLocation(!!currentUser.myLocation)
                 setFormData({
@@ -314,6 +313,11 @@ const Profile = () => {
                                                             to="/reset-password"
                                                             className="btn btn-secondary me-md-2 mb-2 mb-md-0 mt-2">
                                                             Reset Password
+                                                        </Link>
+                                                        <Link
+                                                            to="/places"
+                                                            className="btn btn-info me-md-2 mb-2 mb-md-0 mt-2">
+                                                            Places
                                                         </Link>
                                                         <button
                                                             onClick={logoutUser}

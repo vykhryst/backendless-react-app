@@ -7,7 +7,7 @@ import Login from './pages/user/Login';
 import Profile from './pages/user/Profile';
 import Navbar from './elements/Navbar';
 import PasswordReset from "./pages/user/PasswordReset";
-import FileManager from "./pages/FileManager";
+import FileManager from "./pages/files/FileManager";
 import Places from "./pages/places/Places";
 
 // Встановлення змінних середовища з файлу .env
@@ -27,8 +27,8 @@ function App() {
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/reset-password" element={<PasswordReset/>}/>
-                <Route path={'/file-manager'} element={<FileManager/>}/>
-                <Route path="/my-places" element={<Places />} />
+                <Route path="/file-manager" element={<FileManager/>}/>
+                <Route path="/places" element={<Places />} />
                 <Route path="*" element={<h1 className="text-center mt-5"> Page Not Found </h1>}/>
             </Routes>
         </Router>
