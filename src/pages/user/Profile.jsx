@@ -11,6 +11,7 @@ const Profile = () => {
     const [selectedAvatar, setSelectedAvatar] = useState(null);
     const [trackLocation, setTrackLocation] = useState(false);
     const navigate = useNavigate();
+    const locationLogger = Backendless.Logging.getLogger('com.mbaas.LocationLogger');
 
     useEffect(() => {
         const getCurrentUser = async () => {
@@ -50,11 +51,16 @@ const Profile = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(async (position) => {
                 const {latitude, longitude} = position.coords;
-                const updatedUser = {
-                    ...user,
-                    myLocation: new Backendless.Data.Point().setLatitude(latitude).setLongitude(longitude)
-                };
-                await Backendless.UserService.update(updatedUser);
+                try {
+                    const updatedUser = {
+                        ...user,
+                        myLocation: new Backendless.Data.Point().setLatitude(latitude).setLongitude(longitude)
+                    };
+                    await Backendless.UserService.update(updatedUser);
+                    setUser(updatedUser);
+                } catch (error) {
+                    locationLogger.error(`Failed to update location for user ${user.username}: ${error.message}`);
+                }
             }, (error) => {
                 console.error('Failed to get geolocation:', error);
             });
@@ -73,6 +79,7 @@ const Profile = () => {
             const updatedUser = {...user, myLocation: null};
             await Backendless.UserService.update(updatedUser);
             setUser(updatedUser);
+            locationLogger.info(`Stopped tracking location for user ${user.username}`);
         }
     };
 

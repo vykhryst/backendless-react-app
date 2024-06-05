@@ -103,9 +103,16 @@ const AddPlace = ({show, handleClose, fetchPlaces}) => {
     };
 
     const uploadImage = async () => {
-        const path = `users/${user.username}/places`;
-        const fileURLs = await Backendless.Files.upload(image, path, true);
-        return fileURLs.fileURL;
+        const filesLogger = Backendless.Logging.getLogger('com.mbaas.FilesLogger');
+        try {
+            const path = `users/${user.username}/places`;
+            const fileURLs = await Backendless.Files.upload(image, path, true);
+            return fileURLs.fileURL;
+        }
+        catch (error) {
+            filesLogger.error(`Error uploading file when adding a place: ${error.message}`);
+            throw error;
+        }
     };
 
     const saveHashtags = async () => {

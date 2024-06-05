@@ -15,6 +15,7 @@ const FileManager = () => {
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [shareUsername, setShareUsername] = useState('');
     const [fileToShare, setFileToShare] = useState(null);
+    const filesLogger = Backendless.Logging.getLogger('com.mbaas.FilesLogger');
 
     // Effects
     useEffect(() => {
@@ -93,6 +94,7 @@ const FileManager = () => {
             await fetchFiles(currentPath);
         } catch (error) {
             handleFetchError('folder');
+            filesLogger.error(`Failed to create directory ${folderName}: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -156,6 +158,7 @@ const FileManager = () => {
             await fetchFiles(currentPath);
         } catch (error) {
             handleFetchError('file');
+            filesLogger.error(`Failed to upload file in File Manager: ${error.message}`);
         } finally {
             setLoading(false);
         }

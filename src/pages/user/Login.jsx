@@ -18,6 +18,7 @@ const Login = () => {
     const [errors, setErrors] = useState({});
     const [generalError, setGeneralError] = useState('');
     const navigate = useNavigate();
+    const logger = Backendless.Logging.getLogger('com.mbaas.AuthLogger');
 
     const validateInputs = () => {
         const newErrors = {};
@@ -44,6 +45,7 @@ const Login = () => {
             navigate('/profile');
         } catch (error) {
             setGeneralError(error.message || 'Login failed. Please try again.');
+            logger.error(`Login failed for user with username ${username}: ${error.message}`);
         } finally {
             setLoading(false);
         }
