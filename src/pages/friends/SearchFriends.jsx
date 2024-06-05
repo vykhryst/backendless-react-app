@@ -67,6 +67,7 @@ const SearchFriends = ({user, friends, handleAddFriend, searchResults, setSearch
                         />
                         <input
                             type="number"
+                            min="0"
                             className="form-control mt-2"
                             placeholder="Search radius in km"
                             value={searchRadius}

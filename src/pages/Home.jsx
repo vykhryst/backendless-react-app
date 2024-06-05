@@ -1,20 +1,16 @@
 import React, {useEffect, useState} from 'react';
 import {Link} from "react-router-dom";
-import Backendless from "backendless";
 
 const Home = () => {
-    const [currentUser, setCurrentUser] = useState(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(null);
+    const APP_ID = process.env.REACT_APP_BACKENDLESS_APP_ID;
 
     useEffect(() => {
-        const fetchCurrentUser = async () => {
-            try {
-                const user = await Backendless.UserService.getCurrentUser();
-                setCurrentUser(user);
-            } catch (error) {
-                console.error('Failed to fetch current user', error);
-            }
+        const fetchIsLoggedIn = async () => {
+            const currentUser = localStorage.getItem(`Backendless_${APP_ID}`);
+            setIsLoggedIn(!!currentUser);
         };
-        fetchCurrentUser().then(r => r);
+        fetchIsLoggedIn().then(r => r);
     }, []);
 
     return (
@@ -36,7 +32,7 @@ const Home = () => {
                                                 <li className="list-group-item"><Link
                                                     to={'/register'}>Registration</Link></li>
                                                 <li className="list-group-item"><Link to={'/login'}>Login</Link></li>
-                                                {currentUser && (
+                                                {isLoggedIn && (
                                                     <>
                                                         <li className="list-group-item"><Link to={'/profile'}>User
                                                             Profile</Link></li>
@@ -44,6 +40,8 @@ const Home = () => {
                                                             Recovery</Link></li>
                                                         <li className="list-group-item"><Link to={'/file-manager'}>File
                                                             Management</Link></li>
+                                                        <li className="list-group-item"><Link to={'/places'}>Places</Link></li>
+                                                        <li className="list-group-item"><Link to={'/friends'}>Friends</Link></li>
                                                     </>
                                                 )}
                                             </ul>

@@ -1,20 +1,16 @@
 import React, {useState, useEffect} from 'react';
 import {Link} from 'react-router-dom';
-import Backendless from 'backendless';
 
 const Navbar = () => {
-    const [currentUser, setCurrentUser] = useState(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(null);
+    const APP_ID = process.env.REACT_APP_BACKENDLESS_APP_ID;
 
     useEffect(() => {
-        const fetchCurrentUser = async () => {
-            try {
-                const user = await Backendless.UserService.getCurrentUser();
-                setCurrentUser(user);
-            } catch (error) {
-                console.error('Failed to fetch current user', error);
-            }
+        const fetchIsLoggedIn = async () => {
+            const currentUser = localStorage.getItem(`Backendless_${APP_ID}`);
+            setIsLoggedIn(!!currentUser);
         };
-        fetchCurrentUser().then(r => r);
+        fetchIsLoggedIn().then(r => r);
     }, []);
 
     return (
@@ -33,7 +29,7 @@ const Navbar = () => {
                         <li className="nav-item">
                             <Link className="nav-link" to="/login">Login</Link>
                         </li>
-                        {currentUser && (
+                        {isLoggedIn && (
                             <>
                                 <li className="nav-item">
                                     <Link className="nav-link" to="/profile">Profile</Link>
@@ -43,6 +39,9 @@ const Navbar = () => {
                                 </li>
                                 <li className="nav-item">
                                     <Link className="nav-link" to="/places">Places</Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link className="nav-link" to="/friends">Friends</Link>
                                 </li>
                             </>
                         )}
