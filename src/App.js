@@ -9,6 +9,7 @@ import Navbar from './elements/Navbar';
 import PasswordReset from "./pages/user/PasswordReset";
 import FileManager from "./pages/files/FileManager";
 import Places from "./pages/places/Places";
+import Friends from "./pages/friends/Friends";
 
 // Встановлення змінних середовища з файлу .env
 const APP_ID = process.env.REACT_APP_BACKENDLESS_APP_ID;
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/reset-password" element={<PasswordReset/>}/>
                 <Route path="/file-manager" element={<FileManager/>}/>
                 <Route path="/places" element={<Places />} />
+                <Route path="/friends" element={<Friends />} />
                 <Route path="*" element={<h1 className="text-center mt-5"> Page Not Found </h1>}/>
             </Routes>
         </Router>
