@@ -10,6 +10,7 @@ import PasswordReset from "./pages/user/PasswordReset";
 import FileManager from "./pages/files/FileManager";
 import Places from "./pages/places/Places";
 import Friends from "./pages/friends/Friends";
+import Feedback from "./pages/feedback/Feedback";
 
 // Встановлення змінних середовища з файлу .env
 const APP_ID = process.env.REACT_APP_BACKENDLESS_APP_ID;
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/file-manager" element={<FileManager/>}/>
                 <Route path="/places" element={<Places />} />
                 <Route path="/friends" element={<Friends />} />
+                <Route path="/feedback" element={<Feedback />} />
                 <Route path="*" element={<h1 className="text-center mt-5"> Page Not Found </h1>}/>
             </Routes>
         </Router>

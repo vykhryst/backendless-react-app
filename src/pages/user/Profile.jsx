@@ -326,6 +326,10 @@ const Profile = () => {
                                                             className="btn btn-info me-md-2 mb-2 mb-md-0 mt-2">
                                                             Places
                                                         </Link>
+                                                        <Link to="/friends"
+                                                              className="btn btn-outline-dark me-md-2 mb-2 mb-md-0 mt-2">
+                                                            Friends
+                                                        </Link>
                                                         <button
                                                             onClick={logoutUser}
                                                             className="btn btn-danger me-md-2 mb-2 mb-md-0 mt-2">

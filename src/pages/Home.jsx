@@ -34,14 +34,24 @@ const Home = () => {
                                                 <li className="list-group-item"><Link to={'/login'}>Login</Link></li>
                                                 {isLoggedIn && (
                                                     <>
-                                                        <li className="list-group-item"><Link to={'/profile'}>User
-                                                            Profile</Link></li>
-                                                        <li className="list-group-item"><Link to={'/reset-password'}>Password
-                                                            Recovery</Link></li>
-                                                        <li className="list-group-item"><Link to={'/file-manager'}>File
-                                                            Management</Link></li>
-                                                        <li className="list-group-item"><Link to={'/places'}>Places</Link></li>
-                                                        <li className="list-group-item"><Link to={'/friends'}>Friends</Link></li>
+                                                        <li className="list-group-item">
+                                                            <Link to={'/profile'}>User Profile</Link>
+                                                        </li>
+                                                        <li className="list-group-item">
+                                                            <Link to={'/reset-password'}>Password Recovery</Link>
+                                                        </li>
+                                                        <li className="list-group-item">
+                                                            <Link to={'/file-manager'}>File Management</Link>
+                                                        </li>
+                                                        <li className="list-group-item">
+                                                            <Link to={'/places'}>Places</Link>
+                                                        </li>
+                                                        <li className="list-group-item">
+                                                            <Link to={'/friends'}>Friends</Link>
+                                                        </li>
+                                                        <li className="list-group-item">
+                                                            <Link to={"/feedback"}>Feedback</Link>
+                                                        </li>
                                                     </>
                                                 )}
                                             </ul>
