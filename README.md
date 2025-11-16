@@ -57,7 +57,7 @@ The app includes user authentication, personal file storage, geolocated “place
 ### 1. Clone & Install
 
 ```bash
-git clone [https://github.com/vykhryst/readict.git](https://github.com/vykhryst/readict.git)
+git clone https://github.com/YOUR-USERNAME/backendless-react-app.git
 cd readict
 npm install
 ```
